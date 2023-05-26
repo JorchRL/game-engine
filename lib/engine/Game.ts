@@ -6,12 +6,12 @@ export default class Game {
   private running: boolean = false;
   private paused: boolean = false;
 
-  constructor(canvas: HTMLCanvasElement) {
-    if (!(canvas instanceof HTMLCanvasElement)) {
+  constructor() {
+    this.canvas = document.getElementById("canvas") as HTMLCanvasElement;
+    if (!(this.canvas instanceof HTMLCanvasElement)) {
       console.error("The canvas element is not an instance of HTMLCanvasElement.");
     }
-    this.canvas = canvas;
-    this.gl = canvas.getContext("webgl") as WebGLRenderingContext;
+    this.gl = this.canvas.getContext("webgl") as WebGLRenderingContext;
     if (!this.gl) {
       console.error("WebGL is not supported in your browser.")
     }
