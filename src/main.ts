@@ -1,11 +1,11 @@
 import "./style.css";
 
-import { MyGame } from "./Game";
-
-
+import { MyGame } from "./MyGame";
 
 document.addEventListener("DOMContentLoaded", main);
+
 function main() {
-  const game = new MyGame();
+  // Create a new instance of MyGame and start it.
+  const game = new MyGame({ canvasId: "canvas" });
   game.start();
 }

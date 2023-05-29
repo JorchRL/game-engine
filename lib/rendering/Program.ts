@@ -1,44 +1,42 @@
-import Shader from "./Shader";
+import { Shader } from "./Shader";
 
 // This class represents a WebGL shader program.
-export default class Program {
+export class Program {
+  private _program: WebGLProgram | null = null;
   constructor(
+    gl: WebGLRenderingContext,
     vertexShader: Shader,
-    fragmentShader: Shader,
-    gl: WebGLRenderingContext
+    fragmentShader: Shader
   ) {
-    // it should create a WebGL program
-    const program = gl.createProgram();
+    this._program = gl.createProgram();
 
-    if (!program) {
+    if (!this._program) {
       throw new Error("Program could not be created");
     }
-    // it should attach the vertex shader to the program
-    gl.attachShader(program, vertexShader);
 
-    // it should attach the fragment shader to the program
-    gl.attachShader(program, fragmentShader);
+    gl.attachShader(this._program, vertexShader.shaderObject);
 
-    // it should link the program
-    gl.linkProgram(program);
+    gl.attachShader(this._program, fragmentShader.shaderObject);
 
-    // it should check if the program linked successfully
-    // if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    //   throw new Error(gl.getProgramInfoLog(program));
-    // }
+    gl.linkProgram(this._program);
+
+    if (!gl.getProgramParameter(this._program, gl.LINK_STATUS)) {
+      throw new Error(
+        gl.getProgramInfoLog(this._program) as string | undefined
+      );
+    }
   }
 
-  // it should have a method to get the location of an attribute
+  get program(): WebGLProgram {
+    if (!this._program) {
+      throw new Error("Program is null");
+    }
+    return this._program;
+  }
+}
 
-  // it should have a method to get the location of a uniform
-  // it should have a method to set a uniform
-  // it should have a method to set an attribute
-
-  // it should have a method to set the projection matrix
-
-  // it should have a method to set the view matrix
-
-  // it should have a method to set the model matrix
-
-  // it should have a method to set the normal matrix
+export function createDefaultProgram(gl: WebGL2RenderingContext): Program {
+  const vertexShader = new Shader(gl, gl.VERTEX_SHADER);
+  const fragmentShader = new Shader(gl, gl.FRAGMENT_SHADER);
+  return new Program(gl, vertexShader, fragmentShader);
 }

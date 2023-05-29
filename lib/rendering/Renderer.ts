@@ -1,23 +1,24 @@
-import Program from "./Program";
+import { Program, createDefaultProgram } from "./Program";
 import Scene from "../scene/Scene";
 import Camera from "../scene/Camera";
-import Mat4 from "../math/mat4";
+// import Mat4 from "../math/mat4";
+import { Shader, ShaderType } from "./Shader";
 
 // This class is a wrapper for the WebGLRenderingContext.
-class Renderer {
+export class Renderer {
   private canvas: HTMLCanvasElement;
-  private gl: WebGLRenderingContext;
+  private gl: WebGL2RenderingContext;
   private currentProgram: Program | null = null;
 
   constructor(canvas: HTMLCanvasElement) {
-    this.canvas = canvas
-    this.gl = this.canvas.getContext("webgl") as WebGLRenderingContext;
+    this.canvas = canvas;
+    this.gl = this.canvas.getContext("webgl2") as WebGL2RenderingContext;
     if (!this.gl) {
       alert("WebGL is not supported in your browser.");
     }
 
     // set the clear color to black and enable depth testing
-    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    this.gl.clearColor(0.1, 0.1, 0.1, 1.0);
     this.gl.enable(this.gl.DEPTH_TEST);
     this.gl.depthFunc(this.gl.LEQUAL);
   }
@@ -35,34 +36,34 @@ class Renderer {
     this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
   }
 
-  public render(scene: Scene, camera: Camera): void {
+  public render(): void {
+    // TODO: We need to refactor all of this into their own classes.
+    // But first we need to make it render geometry to the screen.
+    const gl = this.gl;
+
+    const program = createDefaultProgram(gl);
+
+    const posAttributeLocation = gl.getAttribLocation(
+      program.program,
+      "a_position"
+    );
+
+    const positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+    const positions = [0, 0, 0, 0.2, 0.7, 0];
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+    const vao = gl.createVertexArray();
+    gl.bindVertexArray(vao);
+    gl.enableVertexAttribArray(posAttributeLocation);
+    gl.vertexAttribPointer(posAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+
     this.resize();
     this.clear();
 
-    for (const object of scene.objects) {
-      // set the shader program
-      const program = object.shader.program;
-      this.gl.useProgram(program);
-
-      // pass the matrices to the shader program
-      const viewMatrixLocation = this.gl.getUniformLocation(program, "u_view");
-      if (viewMatrixLocation) {
-        this.gl.uniformMatrix4fv(viewMatrixLocation, false, camera.viewMatrix);
-      }
-      const projectionMatrixLocation = this.gl.getUniformLocation(
-        program,
-        "u_projection"
-      );
-      if (projectionMatrixLocation) {
-        this.gl.uniformMatrix4fv(
-          projectionMatrixLocation,
-          false,
-          camera.projectionMatrix
-        );
-      }
-
-      // render the object
-    }
+    gl.useProgram(program.program);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
 }
 
